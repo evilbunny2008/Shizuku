@@ -1,0 +1,16 @@
+[versions]
+hidden-api = "4.4.0"
+refine = "4.4.0"
+androidx-annotation = "1.10.0"
+gson = "2.14.0"
+rikkax-parcelablelist = "2.0.1"
+
+[libraries]
+hidden-compat = { module = "dev.rikka.hidden:compat", version.ref = "hidden-api" }
+hidden-stub = { module = "dev.rikka.hidden:stub", version.ref = "hidden-api" }
+refine-runtime = { module = "dev.rikka.tools.refine:runtime", version.ref = "refine" }
+refine-annotation = { module = "dev.rikka.tools.refine:annotation", version.ref = "refine" }
+refine-annotation-processor = { module = "dev.rikka.tools.refine:annotation-processor", version.ref = "refine" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+rikkax-parcelablelist = { module = "dev.rikka.rikkax.parcelablelist:parcelablelist", version.ref = "rikkax-parcelablelist" }

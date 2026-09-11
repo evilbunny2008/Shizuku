@@ -37,6 +37,7 @@ lsposed-hiddenapibypass = "6.1"
 zhanghai-appiconloader = "1.5.0"
 
 [libraries]
+androidx-core = { module = "androidx.core:core", version.ref = "androidx-core-ktx" }
 hidden-compat = { module = "dev.rikka.hidden:compat", version.ref = "hidden-api" }
 hidden-stub = { module = "dev.rikka.hidden:stub", version.ref = "hidden-api" }
 refine-runtime = { module = "dev.rikka.tools.refine:runtime", version.ref = "refine" }

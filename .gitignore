@@ -13,4 +13,4 @@
 /signing.properties
 /.kotlin
 release/
-/api
+api/

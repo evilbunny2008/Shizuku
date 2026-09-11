@@ -33,11 +33,7 @@ android {
         sign {}
     }
     buildTypes {
-        debug {
-            signingConfig = signingConfigs.sign
-        }
         release {
-            signingConfig = signingConfigs.sign
             minifyEnabled = true
             shrinkResources = true
             vcsInfo.include = false
@@ -143,7 +139,7 @@ androidComponents.onVariants(androidComponents.selector().all()) { variant ->
 
             if (isMinified) {
                 def mappingFile = variant.artifacts
-                        .get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
+                        .get(SingleArtifact.OBFUSCATION_MAPPING_FILE.INSTANCE)
                         .get().asFile
                 copy {
                     from mappingFile
@@ -152,7 +148,7 @@ androidComponents.onVariants(androidComponents.selector().all()) { variant ->
                 }
 
                 def apkFolder = variant.artifacts
-                        .get(SingleArtifact.APK)
+                        .get(SingleArtifact.APK.INSTANCE)
                         .get().asFile
                 copy {
                     from apkFolder

@@ -1,3 +1,6 @@
+import com.android.build.api.artifact.SingleArtifact
+import com.android.build.api.variant.AndroidComponentsExtension
+
 plugins {
     id "com.android.application"
     id "dev.rikka.tools.refine"
@@ -30,28 +33,39 @@ android {
     }
 }
 
-android.applicationVariants.all { variant ->
-    variant.outputs.all {
-        def outDir = new File(rootDir, "out")
-        def mappingPath = new File(outDir, "mapping").absolutePath
-        def dexPath = "${rootProject.rootDir.path}/manager/src/main/assets"
-        variant.assembleProvider.get().doLast {
-            if (variant.getBuildType().isMinifyEnabled()) {
-                copy {
-                    from variant.mappingFileProvider.get()
-                    into mappingPath
-                    rename { String fileName ->
-                        mappingPath + File.separator + "cmd-v${variant.versionName}.txt"
-                    }
-                }
-            }
-            copy {
-                def file = zipTree(file(outputFile)).matching { include "classes*.dex" }.singleFile
+def androidComponents = project.extensions.getByType(AndroidComponentsExtension)
 
-                from file
-                into dexPath
-                rename { String fileName ->
-                    fileName.replace(file.getName(), "rish_shizuku.dex")
+androidComponents.onVariants(androidComponents.selector().all()) { variant ->
+    variant.outputs.each { output ->
+        output.outputFileName.set("shizuku-v${rootProject.ext.versionName}-${variant.name}.apk")
+    }
+
+    def isMinified = android.buildTypes.getByName(variant.buildType).minifyEnabled
+    def assembleTaskName = "assemble${variant.name.capitalize()}"
+
+    tasks.matching { it.name == assembleTaskName }.configureEach { t ->
+        t.doLast {
+            def outDir = new File(rootDir, "out")
+            def mappingDir = new File(outDir, "mapping")
+            def apkDir = new File(outDir, "apk")
+
+            if (isMinified) {
+                def mappingFile = variant.artifacts
+                        .get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
+                        .get().asFile
+                copy {
+                    from mappingFile
+                    into mappingDir
+                    rename { "mapping-${rootProject.ext.versionName}.txt" }
+                }
+
+                def apkFolder = variant.artifacts
+                        .get(SingleArtifact.APK)
+                        .get().asFile
+                copy {
+                    from apkFolder
+                    into apkDir
+                    include "*.apk"
                 }
             }
         }

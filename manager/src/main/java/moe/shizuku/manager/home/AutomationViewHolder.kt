@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
@@ -100,6 +101,25 @@ class AutomationViewHolder(
 
             BottomSheetDialog(context).apply {
                 setContentView(sheetBinding.root)
+                // Default BottomSheetDialog construction opens in a
+                // partially-collapsed "peek" state, expecting a touch
+                // drag-up gesture to reach full height -- on a D-pad-only
+                // TV remote there's no way to perform that gesture at
+                // all, leaving the sheet stuck showing only its topmost
+                // sliver (just the title) with no way to reach the rest
+                // of the content (the actual intent action/package/
+                // target/auth-token fields below it).
+                //
+                // Setting behavior.state here (before show()) rather than
+                // inside setOnShowListener isn't reliable -- the
+                // underlying bottom sheet view may not be fully
+                // attached/measured yet at this point, and the state can
+                // get silently overridden during the dialog's own layout
+                // pass. Setting it once actually shown avoids that.
+                setOnShowListener {
+                    behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                    behavior.skipCollapsed = true
+                }
                 show()
             }
         }

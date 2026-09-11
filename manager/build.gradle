@@ -167,6 +167,11 @@ androidComponents.onVariants(androidComponents.selector().all()) { variant ->
 tasks.matching { it.name.contains("CompileArtProfile") }.configureEach {
     enabled = false
 }
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:deprecation"
+}
+
 configurations.configureEach {
     exclude group: "androidx.appcompat", module: "appcompat"
     exclude group: "androidx.profileinstaller", module: "profileinstaller"

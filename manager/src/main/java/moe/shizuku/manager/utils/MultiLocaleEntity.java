@@ -36,7 +36,7 @@ public class MultiLocaleEntity extends LinkedHashMap<String, String> {
             String region = locale.getCountry();
 
             // fully match
-            locale = new Locale(language, region);
+            locale = Locale.of(language, region);
             for (String l : keySet()) {
                 if (locale.toString().equals(l.replace('-', '_'))) {
                     return get(l);
@@ -44,7 +44,7 @@ public class MultiLocaleEntity extends LinkedHashMap<String, String> {
             }
 
             // match language only keys
-            locale = new Locale(language);
+            locale = Locale.of(language);
             for (String l : keySet()) {
                 if (locale.toString().equals(l)) {
                     return get(l);

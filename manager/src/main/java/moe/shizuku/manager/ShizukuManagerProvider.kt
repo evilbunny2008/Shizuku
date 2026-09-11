@@ -1,6 +1,7 @@
 package moe.shizuku.manager
 
 import android.os.Bundle
+import androidx.core.os.BundleCompat
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.flow.first
@@ -36,7 +37,7 @@ class ShizukuManagerProvider : ShizukuProvider() {
                 extras.classLoader = BinderContainer::class.java.classLoader
 
                 val token = extras.getString(USER_SERVICE_ARG_TOKEN) ?: return null
-                //val binder = BundleCompat.getParcelable(extras, EXTRA_BINDER, BinderContainer::class.java)?.binder ?: return null
+                val binder = BundleCompat.getParcelable(extras, EXTRA_BINDER, BinderContainer::class.java)?.binder ?: return null
 
                 return runBlocking {
                     try {
@@ -45,8 +46,7 @@ class ShizukuManagerProvider : ShizukuProvider() {
                             withContext(workerHandler.asCoroutineDispatcher()) {
                                 try {
                                     val reply = Bundle()
-                                    //Shizuku.attachUserService(binder, bundleOf(USER_SERVICE_ARG_TOKEN to token))
-                                    Bundle().apply { putString(USER_SERVICE_ARG_TOKEN, token) }
+                                    Shizuku.attachUserService(binder, Bundle().apply { putString(USER_SERVICE_ARG_TOKEN, token) })
                                     reply.putParcelable(EXTRA_BINDER, BinderContainer(Shizuku.getBinder()))
                                     reply
                                 } catch (e: Throwable) {

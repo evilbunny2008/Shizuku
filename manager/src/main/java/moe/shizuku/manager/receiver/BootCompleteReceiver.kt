@@ -11,7 +11,11 @@ class BootCompleteReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
-        ShizukuReceiverStarter.start(context)
-        if(ShizukuSettings.getWatchdog()) WatchdogService.start(context)
+        // Root start now runs on a background thread; hold goAsync() until it
+        // actually finishes so the system doesn't demote/kill the process
+        // while root grant + the starter command are still in flight.
+        val pendingResult = goAsync()
+        ShizukuReceiverStarter.start(context, onRootStartFinished = { pendingResult.finish() })
+        if (ShizukuSettings.getWatchdog()) WatchdogService.start(context)
     }
 }

@@ -90,7 +90,7 @@ materialThemeBuilder {
     generateTextColors = true
 }
 
-def androidComponentsForSdk = project.extensions.getByType(com.android.build.api.variant.AndroidComponentsExtension)
+def androidComponentsForSdk = project.extensions.getByType(AndroidComponentsExtension)
 def sdkDirProvider = androidComponentsForSdk.sdkComponents.sdkDirectory
 
 def collapseReleaseResourceNames = tasks.register("collapseReleaseResourceNames") {

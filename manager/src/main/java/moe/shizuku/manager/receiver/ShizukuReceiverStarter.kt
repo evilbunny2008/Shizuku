@@ -37,11 +37,15 @@ object ShizukuReceiverStarter {
         STOPPED
     }
 
-    fun start(context: Context, forceStart: Boolean = false) {
-        if ((UserHandleCompat.myUserId() > 0 || ShizukuStateMachine.isRunning()) && !forceStart) return
+    fun start(context: Context, forceStart: Boolean = false, onRootStartFinished: (() -> Unit)? = null) {
+        if ((UserHandleCompat.myUserId() > 0 || ShizukuStateMachine.isRunning()) && !forceStart) {
+            onRootStartFinished?.invoke()
+            return
+        }
 
         if (ShizukuSettings.getLastLaunchMode() == LaunchMethod.ROOT) {
-            rootStart(context)
+            rootStart(context, onRootStartFinished)
+            return
         } else if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.R || EnvironmentUtils.isTelevision() || EnvironmentUtils.getAdbTcpPort() > 0)
             && ShizukuSettings.getLastLaunchMode() == LaunchMethod.ADB) {
                 if (context.checkSelfPermission(WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED) {
@@ -53,6 +57,9 @@ object ShizukuReceiverStarter {
         } else {
             Log.w(AppConstants.TAG, "Background start not supported")
         }
+        // Non-root paths (ADB WorkManager hand-off, permission error, or
+        // unsupported) don't need goAsync() held past this point.
+        onRootStartFinished?.invoke()
     }
 
     fun buildNotification(context: Context, msg: String? = null): Notification {
@@ -112,20 +119,32 @@ object ShizukuReceiverStarter {
         nm.notify(NOTIFICATION_ID, buildNotification(context, msg))
     }
 
-    private fun rootStart(context: Context) {
-        if (!Shell.getShell().isRoot) {
-            //NotificationHelper.notify(context, AppConstants.NOTIFICATION_ID_STATUS, AppConstants.NOTIFICATION_CHANNEL_STATUS, R.string.notification_service_start_no_root)
-            Shell.getCachedShell()?.close()
-            return
-        }
+    private fun rootStart(context: Context, onFinished: (() -> Unit)? = null) {
+        // Shell.getShell()/exec() block on the root daemon, which can still be
+        // initializing right after boot. Running this on the caller's thread
+        // (the BroadcastReceiver's main thread) risks the ~10s broadcast
+        // timeout killing the process mid-exec, leaving the server half
+        // started. Push it to a background thread instead, and let the
+        // caller hold goAsync() until onFinished fires.
+        Thread {
+            try {
+                if (!Shell.getShell().isRoot) {
+                    //NotificationHelper.notify(context, AppConstants.NOTIFICATION_ID_STATUS, AppConstants.NOTIFICATION_CHANNEL_STATUS, R.string.notification_service_start_no_root)
+                    Shell.getCachedShell()?.close()
+                    return@Thread
+                }
 
-        try {
-            ShizukuStateMachine.set(ShizukuStateMachine.State.STARTING)
-            Shell.cmd(Starter.internalCommand).exec()
-        } catch (e: Exception) {
-            Log.e(AppConstants.TAG, "Failed to start Shizuku with root", e)
-            ShizukuStateMachine.update()
-        }
+                try {
+                    ShizukuStateMachine.set(ShizukuStateMachine.State.STARTING)
+                    Shell.cmd(Starter.internalCommand).exec()
+                } catch (e: Exception) {
+                    Log.e(AppConstants.TAG, "Failed to start Shizuku with root", e)
+                    ShizukuStateMachine.update()
+                }
+            } finally {
+                onFinished?.invoke()
+            }
+        }.start()
     }
 
     private fun showPermissionErrorNotification(context: Context) {

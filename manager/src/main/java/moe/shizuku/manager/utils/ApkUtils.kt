@@ -8,14 +8,12 @@ import android.content.IntentFilter
 import android.content.pm.PackageInstaller
 import android.os.Build
 import android.util.Log
-import com.reandroid.apk.AndroidFrameworks
+import androidx.annotation.RequiresApi
 import com.reandroid.apk.ApkModule
 import com.reandroid.archive.ByteInputSource
+import com.reandroid.archive.FileInputSource
 import com.reandroid.arsc.chunk.TableBlock
 import com.reandroid.arsc.chunk.xml.AndroidManifestBlock
-import com.reandroid.arsc.chunk.xml.ResXmlDocument
-import com.reandroid.arsc.chunk.xml.ResXmlElement
-import com.reandroid.archive.FileInputSource
 import com.reandroid.common.Namespace
 import moe.shizuku.manager.R
 import moe.shizuku.manager.ShizukuApplication
@@ -147,6 +145,7 @@ fun buildApkFilename(): String {
     return "$safeLabel-${getVersionName()}"
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun Context.installPackage(
     apk: File,
     cb: ((Boolean, String?) -> Unit)? = null
@@ -170,6 +169,7 @@ fun Context.installPackage(
     session.close()
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun Context.uninstallPackage(
     pkgName: String,
     cb: ((Boolean, String?) -> Unit)? = null,
@@ -207,6 +207,7 @@ val installerReceiver =
         }
     }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 private fun Context.createInstallerPendingIntent(
     sessionId: Int,
     cb: ((Boolean, String?) -> Unit)? = null
@@ -226,11 +227,7 @@ private fun Context.createInstallerPendingIntent(
         }
 
     val flags =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
+        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
 
     return PendingIntent.getBroadcast(
         this,

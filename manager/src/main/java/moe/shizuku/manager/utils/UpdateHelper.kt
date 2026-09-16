@@ -105,7 +105,7 @@ object UpdateHelper {
 
     suspend fun isUpdateAvailable(): Boolean {
         try {
-            val latest = fetchLatestRelease().version ?: return false
+            val latest = fetchLatestRelease().version
             val current = Version.parse(getVersionName()) ?: return false
             return latest > current
         } catch (e: Exception) {
@@ -132,7 +132,7 @@ object UpdateHelper {
             ).show()
 
         val apk =
-            latestRelease.download()?.run {
+            latestRelease.download().run {
                 val pm = appContext.packageManager
                 val apkPackageName = pm.getPackageArchiveInfo(
                     this.path, 0
@@ -177,7 +177,7 @@ object UpdateHelper {
             val url = "https://api.github.com/repos/thedjchi/Shizuku/releases"
             val request = Request.Builder().url(url).build()
             val response = client.newCall(request).execute()
-            val body = response.body?.string() ?: throw Exception("Couldn't fetch releases")
+            val body = response.body.string()
 
             val releases = json.decodeFromString<List<GitHubRelease>>(body)
             val filtered =
@@ -214,7 +214,7 @@ object UpdateHelper {
 
             val apkFile = File(appContext.cacheDir, filename)
             apkFile.outputStream().use { out ->
-                response.body?.byteStream()?.copyTo(out)
+                response.body.byteStream().copyTo(out)
             }
 
             val downloadedDigest = "sha256:" + apkFile.sha256()

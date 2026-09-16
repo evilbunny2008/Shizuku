@@ -1,5 +1,7 @@
 package moe.shizuku.manager.utils;
 
+import android.os.Build;
+
 import androidx.annotation.NonNull;
 
 import java.util.LinkedHashMap;
@@ -22,6 +24,7 @@ public class MultiLocaleEntity extends LinkedHashMap<String, String> {
 
     private static LocaleProvider sLocaleProvider = DEFAULT_LOCAL_PROVIDER;
 
+    @SuppressWarnings("unused")
     public static void setLocaleProvider(@NonNull LocaleProvider localeProvider) {
         sLocaleProvider = localeProvider;
     }
@@ -30,13 +33,18 @@ public class MultiLocaleEntity extends LinkedHashMap<String, String> {
         return get(sLocaleProvider.get());
     }
 
+    @SuppressWarnings("deprecation")
     public String get(@NonNull Locale locale) {
         if (size() > 0) {
             String language = locale.getLanguage();
             String region = locale.getCountry();
 
             // fully match
-            locale = Locale.of(language, region);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+                locale = Locale.of(language, region);
+            else
+                locale = new Locale(language, region);
+
             for (String l : keySet()) {
                 if (locale.toString().equals(l.replace('-', '_'))) {
                     return get(l);
@@ -44,7 +52,11 @@ public class MultiLocaleEntity extends LinkedHashMap<String, String> {
             }
 
             // match language only keys
-            locale = Locale.of(language);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+                locale = Locale.of(language);
+            else
+                locale = new Locale(language);
+
             for (String l : keySet()) {
                 if (locale.toString().equals(l)) {
                     return get(l);

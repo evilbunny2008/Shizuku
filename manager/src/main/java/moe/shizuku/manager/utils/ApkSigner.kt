@@ -58,7 +58,7 @@ object ApkSigner {
             loadKey()
         } else try {
             getSelfSigningKey()
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             if (createIfNeeded) createSigningKey()
             else throw IllegalStateException("Signing key does not exist")
         }

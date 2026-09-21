@@ -13,7 +13,7 @@ androidx-recyclerview = "1.4.0"
 androidx-lifecycle = "2.11.0"
 androidx-preference-ktx = "1.2.1"
 androidx-work = "2.11.2"
-tools-apksig = "9.4.0"
+tools-apksig = "9.4.1"
 google-material = "1.14.0"
 squareup-okhttp = "5.5.0"
 libsu = "6.0.0"
@@ -37,8 +37,8 @@ lsposed-hiddenapibypass = "6.1"
 zhanghai-appiconloader = "1.5.0"
 
 [plugins]
-android-library = { id = "com.android.library", version = "9.4.0" }
-android-application = { id = "com.android.application", version = "9.4.0" }
+android-library = { id = "com.android.library", version = "9.4.1" }
+android-application = { id = "com.android.application", version = "9.4.1" }
 rikka-refine = { id = "dev.rikka.tools.refine", version = "4.4.0" }
 
 [libraries]

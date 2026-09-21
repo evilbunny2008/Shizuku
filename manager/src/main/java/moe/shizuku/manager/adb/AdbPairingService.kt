@@ -38,8 +38,8 @@ class AdbPairingService : Service() {
         private const val startAction = "start"
         private const val stopAction = "stop"
         private const val replyAction = "reply"
-        private const val remoteInputResultKey = "paring_code"
-        private const val portKey = "paring_code"
+        private const val remoteInputResultKey = "pairing_code"
+        private const val portKey = "pairing_port"
         private const val hostKey = "pairing_host"
 
         fun startIntent(context: Context): Intent {

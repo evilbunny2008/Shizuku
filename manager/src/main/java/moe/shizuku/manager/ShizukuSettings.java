@@ -136,7 +136,8 @@ public class ShizukuSettings {
     public static boolean getStartOnBoot(Context context) {
         ComponentName bootCompleteReceiver = new ComponentName(context.getPackageName(), BootCompleteReceiver.class.getName());
         int state = context.getPackageManager().getComponentEnabledSetting(bootCompleteReceiver);
-        return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
+        return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
     }
 
     public static void setStartOnBoot(Context context, boolean enable) {

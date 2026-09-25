@@ -64,6 +64,14 @@ class AutomationViewHolder(
                 fields.forEach { (layout, input, initText) ->
                     input.setText(initText)
                     input.setKeyListener(null)
+                    // setKeyListener(null) still leaves EditText's default MovementMethod in
+                    // place, which makes TextView.fixFocusableAndClickableSettings() force the
+                    // view back to focusable/clickable -- undoing the layout's focusable="false"
+                    // and leaving it as a D-pad-reachable dead end (read-only, unselectable, no
+                    // usable action). Explicitly turn focus back off so D-pad navigation skips
+                    // straight to the copy button instead.
+                    input.isFocusable = false
+                    input.isFocusableInTouchMode = false
 
                     layout.setEndIconOnClickListener { v ->
                         val context = v.context

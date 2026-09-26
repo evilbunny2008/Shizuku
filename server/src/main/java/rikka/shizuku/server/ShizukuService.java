@@ -542,11 +542,10 @@ public class ShizukuService extends Service<ShizukuUserServiceManager, ShizukuCl
     static void sendBinderToManager(Binder binder, int userId) {
         boolean success = sendBinderToUserApp(binder, MANAGER_APPLICATION_ID, userId);
         if (!success) {
-            // For unknown reason, sometimes this could happens
-            // Kill Shizuku app and try again could work
+            // Retry without force-stopping the manager app first: on some OEM builds (e.g. TCL's
+            // auto-start restrictions), the provider push is blocked while the app is legitimately
+            // launching in the foreground, and force-stopping here would kill that launch.
             try {
-                LOGGER.e("kill %s in user %d and try again", MANAGER_APPLICATION_ID, userId);
-                ActivityManagerApis.forceStopPackageNoThrow(MANAGER_APPLICATION_ID, userId);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ignored) {}

@@ -151,7 +151,12 @@ public class ShizukuSettings {
     }
     
     public static boolean getWatchdog() {
-        return getPreferences().getBoolean(Keys.KEY_WATCHDOG, false);
+        // Defaults to true (matching getStartOnBoot()'s default-enabled
+        // behaviour) so the watchdog runs automatically without the user
+        // having to find and flip the toggle in Settings. Anyone who has
+        // already explicitly set this (on or off) keeps that choice, since
+        // it's read from the stored preference first.
+        return getPreferences().getBoolean(Keys.KEY_WATCHDOG, true);
     }
 
     public static boolean isWatchdogRunning() {

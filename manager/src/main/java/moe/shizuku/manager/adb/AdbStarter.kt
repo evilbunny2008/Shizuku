@@ -4,6 +4,7 @@ import android.Manifest.permission.WRITE_SECURE_SETTINGS
 import android.content.pm.PackageManager
 import android.content.Context
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import java.io.EOFException
 import java.net.SocketException
@@ -21,10 +22,34 @@ import moe.shizuku.manager.starter.Starter
 import moe.shizuku.manager.utils.EnvironmentUtils
 import moe.shizuku.manager.utils.ShizukuStateMachine
 
+private const val TAG = "AdbStarter"
+
 object AdbStarter {
     suspend fun startAdb(context: Context, port: Int, log: ((String) -> Unit)? = null) {
         suspend fun AdbClient.runCommand(cmd: String) {
             command(cmd) { log?.invoke(String(it)) }
+        }
+
+        // TCL's proprietary "TclAppBoot" gatekeeper (seen on TCL/MediaTek TV
+        // boxes) silently blocks this app's own boot-time components -
+        // BootCompleteReceiver, WatchdogService's foreground service start,
+        // etc. - from actually running after a reboot unless this app's
+        // AUTO_START appop is explicitly allowed, with no error surfaced
+        // anywhere in this app's own logs. `adb shell appops set <pkg>
+        // AUTO_START allow` fixes it, and this process is shell UID too
+        // (same standing as adb) the moment a wireless-debugging pairing
+        // has actually been used to open a live shell channel here, so this
+        // re-asserts it every time that happens rather than requiring a
+        // separate manual adb step. Idempotent and harmless if already
+        // granted, or if this device isn't a TCL box and the appop simply
+        // doesn't exist - either way it's best-effort and must never block
+        // actually starting the server.
+        suspend fun AdbClient.grantAutoStart() {
+            runCatching {
+                runCommand("shell:appops set ${context.packageName} AUTO_START allow")
+            }.onFailure {
+                Log.w(TAG, "Failed to grant AUTO_START for ${context.packageName}", it)
+            }
         }
 
         try {
@@ -62,6 +87,7 @@ object AdbStarter {
                 AdbClient("127.0.0.1", activePort, key).use { client ->
                     connectWithRetry(client)
                     log?.invoke("Successfully connected on port $activePort...\n")
+                    client.grantAutoStart()
                     client.runCommand("shell:${Starter.internalCommand}")
                 }
             }

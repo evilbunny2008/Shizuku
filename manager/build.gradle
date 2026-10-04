@@ -125,7 +125,10 @@ def androidComponents = project.extensions.getByType(AndroidComponentsExtension)
 
 androidComponents.onVariants(androidComponents.selector().all()) { variant ->
     variant.outputs.each { output ->
-        output.outputFileName.set("shizuku-v${rootProject.ext.versionName}-${variant.name}.apk")
+        def apkName = variant.buildType == "release"
+                ? "Shizuku-v${rootProject.ext.versionName}.apk"
+                : "shizuku-v${rootProject.ext.versionName}-${variant.name}.apk"
+        output.outputFileName.set(apkName)
     }
 
     def isMinified = android.buildTypes.getByName(variant.buildType).minifyEnabled

@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import java.lang.annotation.Retention;
 import java.util.Locale;
-import moe.shizuku.manager.service.WatchdogService;
 import moe.shizuku.manager.receiver.BootCompleteReceiver;
 import moe.shizuku.manager.utils.Token;
 import moe.shizuku.manager.utils.EmptySharedPreferencesImpl;
@@ -24,8 +23,6 @@ public class ShizukuSettings {
 
     public static final String NAME = "settings";
     public static class Keys {
-        public static final String KEY_START_ON_BOOT = "start_on_boot";
-        public static final String KEY_WATCHDOG = "watchdog";
         public static final String KEY_TCP_MODE = "tcp_mode";
         public static final String KEY_TCP_PORT = "tcp_port";
         public static final String KEY_AUTO_DISABLE_USB_DEBUGGING = "auto_disable_usb_debugging";
@@ -133,44 +130,21 @@ public class ShizukuSettings {
         return token;
     }
 
-    public static boolean getStartOnBoot(Context context) {
+    /**
+     * Start on boot and the watchdog are always on and no longer have
+     * toggles in Settings. An older build's toggle may have disabled
+     * BootCompleteReceiver, so make sure it's enabled again.
+     */
+    public static void ensureStartOnBootEnabled(Context context) {
         ComponentName bootCompleteReceiver = new ComponentName(context.getPackageName(), BootCompleteReceiver.class.getName());
-        int state = context.getPackageManager().getComponentEnabledSetting(bootCompleteReceiver);
-        return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-            || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
-    }
-
-    public static void setStartOnBoot(Context context, boolean enable) {
-        ComponentName bootCompleteReceiver = new ComponentName(context.getPackageName(), BootCompleteReceiver.class.getName());
-        context.getPackageManager().setComponentEnabledSetting(
-            bootCompleteReceiver,
-            enable ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            PackageManager.DONT_KILL_APP
-        );
-        getPreferences().edit().putBoolean(Keys.KEY_START_ON_BOOT, enable).apply();
-    }
-    
-    public static boolean getWatchdog() {
-        // Defaults to true (matching getStartOnBoot()'s default-enabled
-        // behaviour) so the watchdog runs automatically without the user
-        // having to find and flip the toggle in Settings. Anyone who has
-        // already explicitly set this (on or off) keeps that choice, since
-        // it's read from the stored preference first.
-        return getPreferences().getBoolean(Keys.KEY_WATCHDOG, true);
-    }
-
-    public static boolean isWatchdogRunning() {
-        return WatchdogService.isRunning();
-    }
-
-    public static void setWatchdog(Context context, boolean enable) {
-        if (enable) {
-            WatchdogService.start(context);
-        } else {
-            WatchdogService.stop(context);
+        PackageManager pm = context.getPackageManager();
+        if (pm.getComponentEnabledSetting(bootCompleteReceiver) == PackageManager.COMPONENT_ENABLED_STATE_DISABLED) {
+            pm.setComponentEnabledSetting(
+                bootCompleteReceiver,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP
+            );
         }
-        getPreferences().edit().putBoolean(Keys.KEY_WATCHDOG, enable).apply();
-        return;
     }
 
     public static boolean getTcpMode() {

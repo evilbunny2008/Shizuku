@@ -16,7 +16,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import moe.shizuku.manager.R
 import moe.shizuku.manager.MainActivity
-import moe.shizuku.manager.ShizukuSettings
 import moe.shizuku.manager.receiver.ShizukuReceiverStarter
 import moe.shizuku.manager.utils.SettingsPage
 import moe.shizuku.manager.utils.ShizukuStateMachine
@@ -38,10 +37,6 @@ class WatchdogService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == "ACTION_STOP_SERVICE") {
-            stopSelf()
-            return START_NOT_STICKY
-        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
                 NOTIFICATION_ID_WATCHDOG,
@@ -60,7 +55,6 @@ class WatchdogService : Service() {
     override fun onDestroy() {
         ShizukuStateMachine.removeListener(stateListener)
         isRunning.set(false)
-        ShizukuSettings.setWatchdog(applicationContext, false)
         super.onDestroy()
     }
 
@@ -89,22 +83,10 @@ class WatchdogService : Service() {
             this, 0, launchIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val stopIntent = Intent(this, WatchdogService::class.java).apply {
-            action = "ACTION_STOP_SERVICE"
-        }
-        val stopPendingIntent = PendingIntent.getService(
-            this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
         return NotificationCompat.Builder(this, channelId)
             .setContentTitle(getString(R.string.watchdog_running))
             .setSmallIcon(R.drawable.ic_system_icon)
             .setContentIntent(launchPendingIntent)
-            .addAction(
-                R.drawable.ic_close_24,
-                getString(R.string.watchdog_turn_off),
-                stopPendingIntent
-            )
             .setOngoing(true)
             .build()
     }
@@ -156,11 +138,6 @@ class WatchdogService : Service() {
             } catch (e: Exception) {
                 Log.e("ShizukuApplication", "Failed to start WatchdogService: ${e.message}" )
             }
-        }
-
-        @JvmStatic
-        fun stop(context: Context) {
-            context.stopService(Intent(context, WatchdogService::class.java))
         }
 
         @JvmStatic

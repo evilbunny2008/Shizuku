@@ -19,8 +19,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat.Type
@@ -29,14 +27,10 @@ import androidx.preference.*
 import androidx.preference.Preference.SummaryProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlin.coroutines.resume
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.CancellableContinuation
 import moe.shizuku.manager.R
 import moe.shizuku.manager.ShizukuSettings
 import moe.shizuku.manager.ShizukuSettings.Keys.*
@@ -46,12 +40,10 @@ import moe.shizuku.manager.app.ThemeHelper
 import moe.shizuku.manager.ktx.isComponentEnabled
 import moe.shizuku.manager.ktx.setComponentEnabled
 import moe.shizuku.manager.ktx.toHtml
-import moe.shizuku.manager.receiver.BootCompleteReceiver
 import moe.shizuku.manager.receiver.NotifCancelReceiver
 import moe.shizuku.manager.receiver.ShizukuReceiverStarter
 import moe.shizuku.manager.utils.CustomTabsHelper
 import moe.shizuku.manager.utils.EnvironmentUtils
-import moe.shizuku.manager.utils.SettingsHelper
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import rikka.core.util.ResourceUtils
 import rikka.html.text.HtmlCompat
@@ -64,8 +56,6 @@ import java.util.*
 
 class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private lateinit var startOnBootPreference: TwoStatePreference
-    private lateinit var watchdogPreference: TwoStatePreference
     private lateinit var tcpModePreference: TwoStatePreference
     private lateinit var tcpPortPreference: EditTextPreference
     private lateinit var languagePreference: ListPreference
@@ -79,9 +69,6 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
     private lateinit var reportBugPreference: Preference
     private lateinit var legacyPairingPreference: TwoStatePreference
     private lateinit var advancedCategory: PreferenceCategory
-
-    private lateinit var batteryOptimizationListener: ActivityResultLauncher<Intent>
-    private var batteryOptimizationContinuation: CancellableContinuation<Boolean>? = null
 
     private val stateListener: (ShizukuStateMachine.State) -> Unit = {
         if (ShizukuStateMachine.isRunning()) {
@@ -98,8 +85,6 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         preferenceManager.sharedPreferencesMode = Context.MODE_PRIVATE
         setPreferencesFromResource(R.xml.settings, null)
 
-        startOnBootPreference = findPreference(KEY_START_ON_BOOT)!!
-        watchdogPreference = findPreference(KEY_WATCHDOG)!!
         tcpModePreference = findPreference(KEY_TCP_MODE)!!
         tcpPortPreference = findPreference(KEY_TCP_PORT)!!
         languagePreference = findPreference(KEY_LANGUAGE)!!
@@ -113,69 +98,6 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         reportBugPreference = findPreference(KEY_REPORT_BUG)!!
         legacyPairingPreference = findPreference(KEY_LEGACY_PAIRING)!!
         advancedCategory = findPreference(KEY_CATEGORY_ADVANCED)!!
-
-        batteryOptimizationListener = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            val accepted = SettingsHelper.isIgnoringBatteryOptimizations(requireContext())
-            batteryOptimizationContinuation?.resume(accepted)
-        }
-
-        startOnBootPreference.apply {
-            if (
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ||
-                EnvironmentUtils.isTelevision() ||
-                EnvironmentUtils.isRooted()
-            ) {
-                isChecked = ShizukuSettings.getStartOnBoot(context)
-
-                setOnPreferenceChangeListener { _, newValue ->
-                    if (newValue is Boolean) {
-                        val doToggle = {
-                            maybeToggleBatterySensitiveSetting(newValue) { result ->
-                                if (result) {
-                                    ShizukuSettings.setStartOnBoot(context, newValue)
-                                    isChecked = ShizukuSettings.getStartOnBoot(context)
-                                }
-                            }
-                        }
-
-                        // https://r.android.com/2128832
-                        if (
-                            newValue &&
-                            !EnvironmentUtils.isTelevision() &&
-                            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
-                        ) {
-                            MaterialAlertDialogBuilder(context)
-                                .setTitle(android.R.string.dialog_alert_title)
-                                .setMessage(R.string.settings_start_on_boot_bug)
-                                .setPositiveButton(android.R.string.ok) { _, _ -> doToggle() }
-                                .setNegativeButton(android.R.string.cancel) { _, _ -> isChecked = !newValue }
-                                .show()
-                        } else { doToggle() }
-                    }
-                    false
-                }
-            } else {
-                isEnabled = false
-                isChecked = false
-                summary = context.getString(R.string.settings_start_on_boot_summary)
-            }
-        }
-
-        watchdogPreference.apply {
-            isChecked = ShizukuSettings.isWatchdogRunning()
-
-            setOnPreferenceChangeListener { _, newValue ->
-                if (newValue is Boolean) {
-                    maybeToggleBatterySensitiveSetting(newValue) { result ->
-                        if (result) {
-                            ShizukuSettings.setWatchdog(context, newValue)
-                            isChecked = newValue
-                        }
-                    }
-                }
-                false
-            }
-        }
 
         tcpModePreference.apply {
             if (EnvironmentUtils.isTlsSupported()) {
@@ -336,9 +258,6 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
-        when (key) {
-            KEY_WATCHDOG -> watchdogPreference.isChecked = ShizukuSettings.isWatchdogRunning()
-        }
     }
 
     override fun onCreateRecyclerView(
@@ -439,36 +358,6 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-        }
-    }
-
-    private fun maybeToggleBatterySensitiveSetting (
-        newValue: Boolean,
-        onResult: (Boolean) -> Unit
-    ) {
-        val context = requireContext()
-        if (!newValue || SettingsHelper.isIgnoringBatteryOptimizations(context) || EnvironmentUtils.isTelevision()) {
-            onResult(true)
-            return
-        }
-            
-        lifecycleScope.launch {
-            val result = suspendCancellableCoroutine<Boolean> { continuation ->
-                batteryOptimizationContinuation = continuation
-                SnackbarHelper.show(
-                    context,
-                    requireView(),
-                    msg = context.getString(R.string.snackbar_battery_optimization_settings),
-                    duration = 6000,
-                    actionText = context.getString(R.string.snackbar_action_fix),
-                    action = { SettingsHelper.requestIgnoreBatteryOptimizations(context, batteryOptimizationListener) },
-                    onDismiss = { event ->
-                        if (event != Snackbar.Callback.DISMISS_EVENT_ACTION && continuation.isActive)
-                            continuation.resume(false)
-                    }
-                )
-            }
-            onResult(result)
         }
     }
 

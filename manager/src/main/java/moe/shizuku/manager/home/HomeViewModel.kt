@@ -93,7 +93,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     fun checkBatteryOptimization() {
         if (EnvironmentUtils.isTelevision()) return
-        if (!ShizukuSettings.getStartOnBoot(appContext) && !ShizukuSettings.getWatchdog()) return
         _shouldShowBatteryOptimizationSnackbar.postValue(
             !SettingsHelper.isIgnoringBatteryOptimizations(appContext)
         )

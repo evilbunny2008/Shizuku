@@ -13,15 +13,6 @@
         android:title="@string/settings_behavior">
 
         <SwitchPreferenceCompat
-            android:key="start_on_boot"
-            android:title="@string/settings_start_on_boot" />
-
-        <SwitchPreferenceCompat
-            android:key="watchdog"
-            android:summary="@string/settings_watchdog_summary"
-            android:title="@string/settings_watchdog" />
-
-        <SwitchPreferenceCompat
             android:key="tcp_mode"
             android:title="@string/settings_tcp_mode" 
             android:defaultValue="true" />

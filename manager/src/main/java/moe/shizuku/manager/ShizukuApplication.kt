@@ -43,7 +43,8 @@ class ShizukuApplication : Application() {
         LocaleDelegate.defaultLocale = ShizukuSettings.getLocale()
         AppCompatDelegate.setDefaultNightMode(ShizukuSettings.getNightMode())
 
-        if(ShizukuSettings.getWatchdog()) WatchdogService.start(context)
+        ShizukuSettings.ensureStartOnBootEnabled(context)
+        WatchdogService.start(context)
     }
 
     override fun onCreate() {

@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageInstaller
 import android.os.Build
+import androidx.core.content.IntentCompat
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.reandroid.apk.ApkModule
@@ -192,7 +193,7 @@ val installerReceiver =
 
             when (status) {
                 PackageInstaller.STATUS_PENDING_USER_ACTION -> {
-                    val confirmationIntent = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
+                    val confirmationIntent = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_INTENT, Intent::class.java)
                     if (confirmationIntent != null) {
                         context.startActivity(confirmationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                     }

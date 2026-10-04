@@ -77,7 +77,7 @@ class AppViewHolder(private val binding: AppListItemBinding) : BaseViewHolder<Pa
                 }
             }
         }
-        adapter.notifyItemChanged(adapterPosition, Any())
+        adapter.notifyItemChanged(bindingAdapterPosition, Any())
         adapter.notifyItemChanged(0)
     }
 

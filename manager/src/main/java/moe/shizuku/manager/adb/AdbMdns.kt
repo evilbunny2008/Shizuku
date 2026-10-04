@@ -48,6 +48,9 @@ class AdbMdns(
         registered = false
     }
 
+    // registerServiceInfoCallback()/hostAddresses replace these from API 34,
+    // but this class must still work on API 30-33.
+    @Suppress("DEPRECATION")
     private fun onServiceFound(info: NsdServiceInfo) {
         nsdManager.resolveService(info, ResolveListener(this))
     }
@@ -56,6 +59,7 @@ class AdbMdns(
         if (info.serviceName == serviceName) observer.onChanged("" to -1)
     }
 
+    @Suppress("DEPRECATION")
     private fun onServiceResolved(resolvedService: NsdServiceInfo) {
         val host = resolvedService.host?.hostAddress ?: return
         if (running && NetworkInterface.getNetworkInterfaces()

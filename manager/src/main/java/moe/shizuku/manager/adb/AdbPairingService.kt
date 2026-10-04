@@ -10,6 +10,7 @@ import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.Observer
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -154,6 +155,7 @@ class AdbPairingService : Service() {
         return searchingNotification
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun onInput(code: String, host: String, port: Int): Notification {
         GlobalScope.launch(Dispatchers.IO) {
             val key = try {

@@ -61,7 +61,7 @@ class StealthTutorialActivity : AppBarActivity() {
                         fab.setOnClickListener { onClick(action) }
                     }
 
-                    is UiState.Loading -> null
+                    is UiState.Loading -> Unit
 
                     is UiState.Pending -> {
                         try {
@@ -264,10 +264,12 @@ class StealthTutorialActivity : AppBarActivity() {
     }
 
     private fun makeNavBarTransparent() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        // From API 35 edge-to-edge is enforced and the nav bar is already transparent.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            @Suppress("DEPRECATION")
             window.navigationBarColor = Color.TRANSPARENT
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            window.isNavigationBarContrastEnforced = false
+        }
+        window.isNavigationBarContrastEnforced = false
     }
 
     val Int.dp: Int

@@ -2,6 +2,7 @@ package moe.shizuku.manager.utils
 
 import android.content.pm.PackageManager
 import com.android.apksig.ApkSigner
+import com.android.apksig.KeyConfig
 import java.io.File
 import java.io.IOException
 import java.math.BigInteger
@@ -39,7 +40,7 @@ object ApkSigner {
             listOf(
                 ApkSigner.SignerConfig.Builder(
                     "ShizukuSigner",
-                    key.privateKey,
+                    KeyConfig.Jca(key.privateKey),
                     listOf(cert)
                 ).build()
             )

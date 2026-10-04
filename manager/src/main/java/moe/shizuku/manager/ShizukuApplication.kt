@@ -21,7 +21,7 @@ class ShizukuApplication : Application() {
         init {
             logd("ShizukuApplication", "init")
 
-            Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_REDIRECT_STDERR))
+            Shell.setDefaultBuilder(Shell.Builder.create())
             if (Build.VERSION.SDK_INT >= 28) {
                 HiddenApiBypass.setHiddenApiExemptions("")
             }

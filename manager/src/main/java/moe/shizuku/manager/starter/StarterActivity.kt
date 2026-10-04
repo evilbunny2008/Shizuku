@@ -154,10 +154,12 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
 
             ShizukuStateMachine.set(ShizukuStateMachine.State.STARTING)
             suspendCancellableCoroutine { cont ->
+                // Log stderr alongside stdout (libsu no longer honours FLAG_REDIRECT_STDERR).
+                val output = object : CallbackList<String?>() {
+                    override fun onAddElement(s: String?) { s?.let { log(it) } }
+                }
                 Shell.cmd(Starter.internalCommand)
-                    .to(object : CallbackList<String?>() {
-                        override fun onAddElement(s: String?) { s?.let { log(it) } }
-                    })
+                    .to(output, output)
                     .submit {
                         if (it.isSuccess) {
                             cont.resume(Unit)

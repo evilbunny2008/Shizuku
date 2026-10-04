@@ -45,7 +45,7 @@ object ApkChangedObservers {
     }
 }
 
-class ApkChangedObserver(private val path: String) : FileObserver(path, DELETE) {
+class ApkChangedObserver(private val path: String) : FileObserver(File(path), DELETE) {
 
     private val listeners = mutableSetOf<ApkChangedListener>()
 

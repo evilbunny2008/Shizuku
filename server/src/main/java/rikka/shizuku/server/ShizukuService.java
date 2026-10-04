@@ -90,6 +90,9 @@ public class ShizukuService extends Service<ShizukuUserServiceManager, ShizukuCl
     }
 
 
+    // Runs as a standalone app_process, so there is no ActivityThread to
+    // create the main looper; prepareMainLooper() is still required here.
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) {
         DdmHandleAppName.setAppName("shizuku_server", 0);
         RishConfig.setLibraryPath(System.getProperty("shizuku.library.path"));

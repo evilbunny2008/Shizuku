@@ -127,6 +127,9 @@ public class ShizukuShellLoader {
         }
     }
 
+    // Runs as a standalone app_process, so there is no ActivityThread to
+    // create the main looper; prepareMainLooper() is still required here.
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) {
         ShizukuShellLoader.args = args;
 

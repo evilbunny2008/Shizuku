@@ -131,8 +131,24 @@ object UpdateHelper {
                 Toast.LENGTH_SHORT,
             ).show()
 
+        val downloaded =
+            try {
+                latestRelease.download()
+            } catch (e: Exception) {
+                null
+            }
+        if (downloaded == null) {
+            Toast
+                .makeText(
+                    appContext,
+                    appContext.getString(R.string.update_download_failed),
+                    Toast.LENGTH_SHORT,
+                ).show()
+            return
+        }
+
         val apk =
-            latestRelease.download().run {
+            downloaded.run {
                 val pm = appContext.packageManager
                 val apkPackageName = pm.getPackageArchiveInfo(
                     this.path, 0
@@ -154,16 +170,6 @@ object UpdateHelper {
                     this
                 }
             }
-        if (apk == null) {
-            Toast
-                .makeText(
-                    appContext,
-                    appContext.getString(R.string.update_download_failed),
-                    Toast.LENGTH_SHORT,
-                ).show()
-            return
-        }
-
         appContext.installPackage(apk) { isSuccess, _ ->
             val toastMsg =
                 if (isSuccess) appContext.getString(R.string.update_success)

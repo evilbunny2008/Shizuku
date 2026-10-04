@@ -8,6 +8,7 @@ import android.os.Looper
 import android.widget.Toast
 import android.provider.Settings
 import android.content.ActivityNotFoundException
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -54,6 +55,7 @@ class AdbPairingAccessibilityService : AccessibilityService() {
         }, 60_000)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
         if (port != null && password != null) return

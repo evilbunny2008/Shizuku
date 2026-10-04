@@ -22,6 +22,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -54,6 +55,38 @@ class AdbPairDialogFragment : DialogFragment() {
         val dialog = builder.create()
         dialog.setCanceledOnTouchOutside(false)
         dialog.setOnShowListener { onDialogShow(dialog) }
+
+        val inMultiScreenOrDisplay = (requireActivity().isInMultiWindowMode
+                || (requireActivity().window?.decorView?.display?.displayId ?: -1) > 0)
+
+        binding.text1.isVisible = inMultiScreenOrDisplay
+        binding.text2.isVisible = !inMultiScreenOrDisplay
+
+        if (inMultiScreenOrDisplay) {
+            dialog.setTitle(R.string.dialog_adb_pairing_discovery)
+        } else {
+            dialog.setTitle(R.string.dialog_adb_pairing_title)
+        }
+
+        viewModel.result.observe(this) {
+            if (it == null) {
+                dismissAllowingStateLoss()
+            } else {
+                when (it) {
+                    is ConnectException -> {
+                        binding.port.error = context.getString(R.string.cannot_connect_port)
+                    }
+                    is AdbInvalidPairingCodeException -> {
+                        binding.pairingCode.error = context.getString(R.string.paring_code_is_wrong)
+                    }
+                    is AdbKeyException -> {
+                        Toast.makeText(context, context.getString(R.string.adb_error_key_store), Toast.LENGTH_LONG)
+                            .apply { setGravity(Gravity.CENTER, 0, 0) }.show()
+                    }
+                }
+            }
+        }
+
         return dialog
     }
 
@@ -107,42 +140,6 @@ class AdbPairDialogFragment : DialogFragment() {
         }
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
-        val context = requireContext()
-        val inMultiScreenOrDisplay = (requireActivity().isInMultiWindowMode
-                || (requireActivity().window?.decorView?.display?.displayId ?: -1) > 0)
-
-        binding.text1.isVisible = inMultiScreenOrDisplay
-        binding.text2.isVisible = !inMultiScreenOrDisplay
-
-        if (inMultiScreenOrDisplay) {
-            dialog?.setTitle(R.string.dialog_adb_pairing_discovery)
-        } else {
-            dialog?.setTitle(R.string.dialog_adb_pairing_title)
-        }
-
-        viewModel.result.observe(this) {
-            if (it == null) {
-                dismissAllowingStateLoss()
-            } else {
-                when (it) {
-                    is ConnectException -> {
-                        binding.port.error = context.getString(R.string.cannot_connect_port)
-                    }
-                    is AdbInvalidPairingCodeException -> {
-                        binding.pairingCode.error = context.getString(R.string.paring_code_is_wrong)
-                    }
-                    is AdbKeyException -> {
-                        Toast.makeText(context, context.getString(R.string.adb_error_key_store), Toast.LENGTH_LONG)
-                            .apply { setGravity(Gravity.CENTER, 0, 0) }.show()
-                    }
-                }
-            }
-        }
-    }
-
     fun show(fragmentManager: FragmentManager) {
         if (fragmentManager.isStateSaved) return
         show(fragmentManager, javaClass.simpleName)
@@ -176,6 +173,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         adbMdns.start()
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun run(port: Int, password: String) {
         GlobalScope.launch(Dispatchers.IO) {
             val host = resolvedHost

@@ -61,6 +61,9 @@ public class ServiceStarter {
 
     private static String managerPackageName = BuildConfig.MANAGER_APPLICATION_ID;
 
+    // Runs as a standalone app_process, so there is no ActivityThread to
+    // create the main looper; prepareMainLooper() is still required here.
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) {
         if (Looper.getMainLooper() == null) {
             Looper.prepareMainLooper();
@@ -98,6 +101,14 @@ public class ServiceStarter {
 
     private static boolean sendBinder(IBinder binder, String token) {
         return sendBinder(binder, token, true);
+    }
+
+    @SuppressWarnings("deprecation")
+    private static BinderContainer getBinderContainer(Bundle bundle) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            return bundle.getParcelable(EXTRA_BINDER, BinderContainer.class);
+        }
+        return bundle.getParcelable(EXTRA_BINDER);
     }
 
     private static boolean sendBinder(IBinder binder, String token, boolean retry) {
@@ -139,7 +150,7 @@ public class ServiceStarter {
                 reply.setClassLoader(BinderContainer.class.getClassLoader());
 
                 Log.i(TAG, String.format("send binder to %s in user %d", managerPackageName, userId));
-                BinderContainer container = reply.getParcelable(EXTRA_BINDER);
+                BinderContainer container = getBinderContainer(reply);
 
                 if (container != null && container.binder != null && container.binder.pingBinder()) {
                     shizukuBinder = container.binder;

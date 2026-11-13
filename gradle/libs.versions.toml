@@ -1,21 +1,21 @@
 [versions]
 hidden-api = "4.4.0"
 refine = "4.4.0"
-androidx-annotation = "1.10.0"
-gson = "2.14.0"
+androidx-annotation = "1.11.0"
+gson = "2.15.0"
 rikkax-parcelablelist = "2.0.1"
 kotlinx-coroutines = "1.11.0"
-kotlinx-serialization-json = "1.11.0"
+kotlinx-serialization-json = "1.12.0"
 androidx-browser = "1.10.0"
-androidx-core-ktx = "1.19.0"
-androidx-fragment-ktx = "1.9.0"
+androidx-core-ktx = "1.19.1"
+androidx-fragment-ktx = "1.9.1"
 androidx-recyclerview = "1.4.0"
 androidx-lifecycle = "2.11.0"
 androidx-preference-ktx = "1.2.1"
-androidx-work = "2.11.2"
-tools-apksig = "9.4.1"
+androidx-work = "2.12.0"
+tools-apksig = "9.5.1"
 google-material = "1.14.0"
-squareup-okhttp = "5.5.0"
+squareup-okhttp = "5.5.1"
 libsu = "6.0.0"
 rikkax-appcompat = "1.6.1"
 rikkax-compatibility = "2.0.0"
@@ -32,13 +32,13 @@ rikkax-lifecycle-resource-livedata = "1.0.1"
 reandroid-arsclib = "1.4.0"
 vvb2060-boringssl = "20251124"
 bouncycastle-bcpkix = "1.86"
-lsposed-libcxx = "29.0.14206865"
-lsposed-hiddenapibypass = "6.1"
+lsposed-libcxx = "30.0.16248370"
+lsposed-hiddenapibypass = "6.2"
 zhanghai-appiconloader = "1.5.0"
 
 [plugins]
-android-library = { id = "com.android.library", version = "9.4.1" }
-android-application = { id = "com.android.application", version = "9.4.1" }
+android-library = { id = "com.android.library", version = "9.5.1" }
+android-application = { id = "com.android.application", version = "9.5.1" }
 rikka-refine = { id = "dev.rikka.tools.refine", version = "4.4.0" }
 
 [libraries]

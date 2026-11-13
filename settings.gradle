@@ -8,12 +8,12 @@ pluginManagement {
         }
     }
     plugins {
-        id "com.android.application" version "9.4.1"
-        id "com.android.library" version "9.4.1"
-        id "org.jetbrains.kotlin.android" version "2.4.20"
-        id "org.jetbrains.kotlin.plugin.serialization" version "2.4.20"
+        id "com.android.application" version "9.5.1"
+        id "com.android.library" version "9.5.1"
+        id "org.jetbrains.kotlin.android" version "2.4.21"
+        id "org.jetbrains.kotlin.plugin.serialization" version "2.4.21"
         id "dev.rikka.tools.autoresconfig" version "1.3.0"
-        id "dev.rikka.tools.materialthemebuilder" version "1.6.0-agp9-local"
+        id "dev.rikka.tools.materialthemebuilder" version "1.6.0"
         id "dev.rikka.tools.refine" version "4.4.0"
     }
 
